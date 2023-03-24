@@ -1,0 +1,3 @@
+[submodule "sources/b-end"]
+	path = sources/b-end
+	url = https://github.com/withered-flowers/apps-deploy-with-db-serverless
