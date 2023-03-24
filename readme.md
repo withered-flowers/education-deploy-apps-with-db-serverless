@@ -143,4 +143,16 @@ Langkah untuk menggunakan Setup Project `Supabase` adalah sebagai berikut:
 
    ![assets/02.png](assets/02.png)
 
-Selanjutnya kita akan menunggu sampai `Supabasenya` selesai membuat databasenya. Mudah bukan membuat databasenya?
+1. Tunggu sampai `Supabasenya` selesai membuat databasenya.
+
+Sampai pada titik ini, kita sudah berhasil membuat database yang akan digunakan untuk deployment kita nanti. Perhatikan bahwa pada `Supabase`, database-nya sudah dibuat yah. Sehingga untuk pengguna **sequelize** dan ORM lainnya, **JANGAN CREATE DATABASE-nya** lagi, melainkan langsung `migration` dan `seed` saja nantinya.
+
+Selanjutnya kita akan mencoba bertindak sebagai "non-developer" dengan melakukan migrasi dan seeding data awal pada database.
+
+## Langkah 3 - Migration & Seeding Database Production
+
+Langkah ini umumnya tidak dilakukan oleh developer, melainkan oleh database administrator apabila di perusahaan besar. (Tapi bisa juga dilakukan oleh developer bila di kantor menganut sistem palugada !)
+
+Pada langkah ini kita akan melakukan pembuatan tabel pada Production database dan melakukan penambahan data awal (seeding). Untuk pembelajaran ini seeding dilakukan dengan mengenerate random data untuk dimasukkan ke dalam database yah.
+
+Langkahnya adalah sebagai berikut:
