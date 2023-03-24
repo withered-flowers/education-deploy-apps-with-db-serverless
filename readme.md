@@ -6,6 +6,8 @@
 - [Disclaimer](#disclaimer)
 - [Perkenalan](#perkenalan)
 - [Let's Demo](#lets-demo)
+  - [Langkah 1 - Inisialisasi Project](#langkah-1---inisialisasi-project)
+  - [Langkah 2 - Setup Database (Supabase)](#langkah-2---setup-database-supabase)
 
 ## Persyaratan Dasar
 
@@ -15,6 +17,7 @@
 - Mengerti penggunaan command line `git`
 - Memiliki akun Vercel yang sudah ter-link dengan github
 - Menggunakan Aplikasi berbasis Express (dan Sequelize)
+- [OPTIONAL] sudah membaca pembelajaran yang sebelumnya tentang deployment di Vercel di https://education.withered-flowers.dev/education-deploy-apps-serverless
 
 ## Disclaimer
 
@@ -54,3 +57,90 @@ Disclaimer:
 - Cara yang digunakan di sini adalah cara untuk mendeploy pada `Vercel` dan databasenya ada di `Supabase`, bila menggunakan yang lain akan ada penyesuaian tersendiri yah !
 
 ## Langkah 1 - Inisialisasi Project
+
+1. Karena pada akhirnya kita akan deploy aplikasi pada Vercel, maka kita akan membutuhkan sebuah repository git (Github / Gitlab / Bitbucket) terlebih dahulu. Pada pembelajaran ini kita menggunakan Github yah.
+
+1. Membuat sebuah repository kosong yang baru baru pada Github dengan nama apapun.
+
+   asumsi:
+
+   - Nama user github: `nama-user-sendiri`
+   - Nama repo: `nama-repo-sendiri`
+   - Protocol: `https` (untuk SSH disesuaikan sendiri yah)
+
+1. Memasukkan perintah berikut pada terminal yang digunakan
+
+   ```bash
+   # Clone Repo
+
+   git clone https://github.com/withered-flowers/education-deploy-apps-with-db-serverless
+
+   # Masuk ke Folder Clone
+
+   cd education-deploy-apps-with-db-serverless
+
+   # Masuk ke folder kode
+
+   cd sources/a-start
+
+   # Inisialisasi Git
+
+   git init
+
+   # Melakukan add dan commit untuk Repo
+
+   git branch -M main
+   git add .
+   git commit -m "feat: initial commit"
+
+   # Menambahkan origin ke github
+
+   git remote add origin \
+      https://github.com/nama-user-sendiri/nama-repo-sendiri.git
+
+   # Push ke github
+
+   git push -u origin main
+   ```
+
+1. Sampai pada titik ini, seharusnya pada repo `nama-repo-sendiri` yang ada di akun Github, sudah ada code yang berisi app.js dan lain lainnya ini.
+
+Langkah selanjutnya adalah kita akan menyiapkan Database yang diperlukan terlebih dahulu, sebelum kita akan melakukan deployment.
+
+## Langkah 2 - Setup Database (Supabase)
+
+Pada langkah ini kita akan membuat database terlebih dahulu pada `Supabase`. `Supabase` (https://supabase.com/), merupakan suatu produk BaaS (Backend as a Service), yang dibuat dengan teknologi Open Source, dimana untuk databasenya, yang digunakan adalah `PostgreSQL`. `Supabase` ini dibuat untuk menyaingi beberapa Cloud Provider (sebut saja `Firebase`) agar tidak terlalu `vendor lock-in` (sangat ketergantungan dengan teknologi yang vendor berikan).
+
+Untuk pricingnya sendiri pun `Supabase` ini cukup bersahabat, hanya saja limitasi terbesarnya adalah: **satu akun free hanya bisa memiliki 2 project saja** (dalam artian, hanya bisa ada 2 project dengan database yang berbeda).
+
+TL;DR: `Supabase` itu gratis (dalam batasan tertentu), jadi kita menggunakannya.
+
+Langkah untuk menggunakan Setup Project `Supabase` adalah sebagai berikut:
+
+1. Buka browser kemudian buka web https://supabase.com
+1. Sign In dengan menggunakan Github (`Start your project` -> `Sign Up now` -> `Continue with GitHub`)
+1. Ketika selesai melakukan Sign Up dan berhasil Sign In, maka kita akan diberikan pertanyaan untuk membuat Organization di dalam Project Supabase:
+
+   - **Name**: `namanya-terserah-yang-buat`
+   - **Type of Organization**: `Education`
+
+   Kemudian pilih `Create Organization`
+
+   Contohnya adalah sebagai berikut:
+
+   ![assets/01.png](assets/01.png)
+
+1. Kemudian setelah ini, kita akan diminta untuk menuliskan nama Project yang akan kita buat. Project ini akan berisi sebuah database untuk PostgreSQL yang kita gunakan. **JANGAN LUPA YAH UNTUK PASSWORDNYA**:
+
+   - **Name**: `namanya-terserah-lagi`
+   - **Database Password**: `yang-aman-dan-jangan-sampai-lupa`
+   - **Region**: `Southeast Asia (Singapore)`
+   - **Pricing Plan**: `Free - $0/month` (tentu saja yang ini)
+
+   Kemudian pilih `Create Project`
+
+   Contohnya adalah sebagai berikut:
+
+   ![assets/02.png](assets/02.png)
+
+Selanjutnya kita akan menunggu sampai `Supabasenya` selesai membuat databasenya. Mudah bukan membuat databasenya?
