@@ -17,7 +17,7 @@ app.use(express.urlencoded({ extended: false }));
 app.get("/", async (req, res) => {
   try {
     const users = await User.findAll();
-    res.json({
+    res.status(200).json({
       code: 200,
       message: {
         secret: process.env.SECRET,
@@ -25,7 +25,7 @@ app.get("/", async (req, res) => {
       },
     });
   } catch (err) {
-    res.json({ code: 400, message: err });
+    res.status(400).json({ code: 400, message: err });
   }
 });
 
