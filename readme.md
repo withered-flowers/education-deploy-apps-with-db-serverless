@@ -11,6 +11,7 @@
   - [Langkah 3 - Migration & Seeding Database Production](#langkah-3---migration--seeding-database-production)
   - [Langkah 4 - Langkah 4 - Deploy to Vercel (Percobaan Pertama)](#langkah-4---deploy-to-vercel-percobaan-pertama)
   - [Langkah 5 - Modifikasi Kode menjadi Serverless Function](#langkah-5---modifikasi-kode-menjadi-serverless-function)
+  - [Langkah 6 - Dirty Hack](#langkah-6---dirty-hack)
 
 ## Persyaratan Dasar
 
@@ -266,10 +267,10 @@ Langkahnya adalah sebagai berikut:
 
    ![assets/05.png](assets/05.png)
 
-1. Kemudian kita akan dipindahkan ke halaman `Dashboard` untuk melakukan konfigurasi. 
+1. Kemudian kita akan dipindahkan ke halaman `Dashboard` untuk melakukan konfigurasi.
 
    Pada tab `Configure Project`, expand Accordion dengan nama `Environment Variables`, dan masukkan key-nya (`Name`) adalah `DATABASE_URL` dan `Value` nya adalah `Connection String yang Kedua` (port 6543), **JANGAN LUPA TEKAN TOMBOL ADD**
-   
+
    Kemudian tekan tombol `Deploy`.
 
    ![assets/06.png](assets/06.png)
@@ -397,4 +398,150 @@ Langkahnya adalah sebagai berikut:
 
    Loh padahal kan... `pg` itu sudah ada di `package.json`.
 
-   Hal ini terjadi karena cara bundle node_modulesnya pun ternyata berbeda pada Serverless Function. sehingga harus ada trick yang dilakukan supaya bisa deploy yang menggunakan `pg` ini
+   Hal ini terjadi karena cara untuk menggunakan `pg` dan `sequelize` pada Serverless cukup berbeda yah.
+
+   Mari kita coba menggunakan dirty hack untuk menyelesaikan masalah ini yah!
+
+## Langkah 6 - Dirty Hack
+
+Pada langkah ini, adalah langkah berdasarkan contoh dan troubleshooting yang ada, jadi sebenarnya tidak ada pada dokumentasi `Vercel` maupun `Seqeulize` yah.
+
+Langkahnya adalah sebagai berikut:
+
+1. Buka file `a-start/api/config/config.json` dan modifikasi filenya menjadi seperti berikut:
+
+   ```json
+   {
+     "development": {
+       "username": "root",
+       "password": null,
+       "database": "database_development",
+       "host": "127.0.0.1",
+       "dialect": "mysql"
+     },
+     "test": {
+       "username": "root",
+       "password": null,
+       "database": "database_test",
+       "host": "127.0.0.1",
+       "dialect": "mysql"
+     },
+     "production": {
+       "use_env_variable": "DATABASE_URL",
+       "ssl": true,
+       "dialect": "postgres",
+       "protocol": "postgres",
+       // Yang kita ganti adalah yang dari sini
+       "pool": {
+         "max": 2,
+         "min": 0,
+         "idle": 0,
+         "acquire": 3000
+       },
+       "dialectOptions": {
+         "ssl": {
+           "require": true,
+           "rejectUnauthorized": false
+         }
+       }
+     }
+   }
+   ```
+
+   Pada konfigurasi tambahan ini kita meminta konfigurasi `sequelize` untuk bisa menggunakan Pool pada Supabase dengan baik.
+
+   `Pool` ini adalah suatu cara aplikasi (Express) untuk bisa berkomunikasi dengan suatu database, dengan menggunakan satu (atau beberapa) koneksi yang bisa dipakai secara sharing, tidak satu pekerjaan satu koneksi.
+
+   Karena serverless hanya memiliki waktu 10 detik waktu eksekusi kemudian akan distop dan akan dijalankan kembali, bila kita menggunakan direct connection, maka akan terpanggil beberapa koneksi untuk database, sehingga pada serverless function umumnya **WAJIB** menggunakan pool.
+
+1. Selanjutnya untuk bisa menghindari masalah `pg not found`, kita harus menginstall package bernama `pg-hstore` terlebih dahulu dengan menggunakan perintah berikut:
+
+   ```bash
+   # npm
+   npm install pg-htore
+
+   # yarn
+   yarn add pg-hstore
+
+   # pnpm
+   pnpm install pg-hstore
+   ```
+
+   Hal ini karena pada saat menginstall `sequelize` dan `pg`, package ini harus dipasang secara terpisah pada saat production pada `Vercel`.
+
+1. Selanjutnya adalah bagian yang cukup menyeramkan, karena kita akan memodifikasi file yang digenerate oleh sequelize-cli, yaitu `models/index.js`, untuk menambahkan konfigurasi khusus untuk penggunaan `pg`.
+
+   Buke file `a-sources/api/models/index.js` kemudian modifikasi kodenya menjadi seperti berikut:
+
+   ```js
+   "use strict";
+
+   const fs = require("fs");
+   const path = require("path");
+   const Sequelize = require("sequelize");
+   const basename = path.basename(__filename);
+   const env = process.env.NODE_ENV || "development";
+   const config = require(__dirname + "/../config/config.json")[env];
+   const db = {};
+
+   // TODO: Tambahkan pg di sini
+   const pg = require("pg");
+
+   let sequelize;
+   if (config.use_env_variable) {
+     sequelize = new Sequelize(
+       process.env[config.use_env_variable],
+       // TODO: Modifikasi kode di sini
+       {
+         ...config,
+         dialectModule: pg,
+       }
+     );
+   } else {
+     sequelize = new Sequelize(
+       config.database,
+       config.username,
+       config.password,
+       config
+     );
+   }
+
+   fs.readdirSync(__dirname)
+     .filter((file) => {
+       return (
+         file.indexOf(".") !== 0 &&
+         file !== basename &&
+         file.slice(-3) === ".js"
+       );
+     })
+     .forEach((file) => {
+       const model = require(path.join(__dirname, file))(
+         sequelize,
+         Sequelize.DataTypes
+       );
+       db[model.name] = model;
+     });
+
+   Object.keys(db).forEach((modelName) => {
+     if (db[modelName].associate) {
+       db[modelName].associate(db);
+     }
+   });
+
+   db.sequelize = sequelize;
+   db.Sequelize = Sequelize;
+
+   module.exports = db;
+   ```
+
+   Kode ini harus dimodifikasi karena by default `dialectModule` untuk `postgres` yang terbaca bukan `pg` melainkan `dialectModule` yang lainnya. Oleh karena itu, kita harus memaksa untuk menggunakan `pg`.
+
+1. Setelah melakukan perubahan kode ini, lakukan `git add, git commit, dan git push` lagi ke GitHub, dan menunggu `Vercel` melakukan build ulang aplikasinya.
+
+Seharusnya sampai di titik ini, apabila menggunakan dan memodifikasi kodenya dengan baik, maka seharusnya kodenya sudah akan berjalan dengan baik.
+
+Selamat sampai pada titik ini artinya kita sudah melakukan deployment aplikasi berbasis `Express` yang menggunakan ORM `Sequelize` dan database `PostgreSQL` dengan baik.
+
+Memang dari sini terlihat bahwa deployment dengan Serverless Function tidaklah semudah yang dikira, dan ini merupakan **anti pattern** sebuah Serverless Function. Namun yang penting, untuk membuat prototype aplikasi, Serverless Function bisa menjadi cara untuk deploy aplikasi Express dengan cukup murah yah.
+
+Selamat mencoba dan berkreasi lagi !
