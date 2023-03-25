@@ -266,7 +266,11 @@ Langkahnya adalah sebagai berikut:
 
    ![assets/05.png](assets/05.png)
 
-1. Kemudian kita akan dipindahkan ke halaman `Dashboard` untuk melakukan konfigurasi. Pada tab `Configure Project`, expand Accordion dengan nama `Environment Variables`, dan masukkan key-nya (`Name`) adalah `DATABASE_URL` dan `Value` nya adalah `Connection String yang Kedua` (port 6543), kemudian tekan tombol `Deploy`.
+1. Kemudian kita akan dipindahkan ke halaman `Dashboard` untuk melakukan konfigurasi. 
+
+   Pada tab `Configure Project`, expand Accordion dengan nama `Environment Variables`, dan masukkan key-nya (`Name`) adalah `DATABASE_URL` dan `Value` nya adalah `Connection String yang Kedua` (port 6543), **JANGAN LUPA TEKAN TOMBOL ADD**
+   
+   Kemudian tekan tombol `Deploy`.
 
    ![assets/06.png](assets/06.png)
 
@@ -368,3 +372,29 @@ Langkahnya adalah sebagai berikut:
    Bagaimanakah caranya?
 
    Cukup dengan melakukan `git add, git commit dan git push` saja, maka kode akan dideploy ulang lagi oleh Vercel secara otomatis.
+
+1. Untuk melihat hasilnya, kita akan buka halaman Vercel (`Dashboard Project`) lagi, kemudian kita akan melihat apakah buildnya sudah selesai atau belum.
+
+   TL;DR: Bila tidak biasa untuk membuka halaman `Deployments`, tunggu saja kira kira sekitar 20 detikan, kemudian buka domain yang diberikan oleh Vercel untuk Project yang dibuat.
+
+   Dan hasilnya adalah...
+
+   **Error lagi** 😭.
+
+   Tapi sekarang berbeda dengan Error yang sebelumnya. Pada error yang sebelumnya yang terjadi adalah `Serverless Function` nya tidak ditemukan, sehingga program menjadi Error.
+
+   Sekarang yang terjadi adalah, `Serverless Function` nya sudah ditemukan, namun terjadi **CRASH**
+
+   Maka error yang diberikan adalah:
+
+   > **This Serverless Function has crashed.**
+
+   Dan apabila kita melihat log Errornya, yang tertulis adalah:
+
+   ```
+   undefined	ERROR	Error: Please install pg package manually
+   ```
+
+   Loh padahal kan... `pg` itu sudah ada di `package.json`.
+
+   Hal ini terjadi karena cara bundle node_modulesnya pun ternyata berbeda pada Serverless Function. sehingga harus ada trick yang dilakukan supaya bisa deploy yang menggunakan `pg` ini
