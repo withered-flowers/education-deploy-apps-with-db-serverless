@@ -145,14 +145,104 @@ Langkah untuk menggunakan Setup Project `Supabase` adalah sebagai berikut:
 
 1. Tunggu sampai `Supabasenya` selesai membuat databasenya.
 
+1. Ketika sudah selesai membuat databasenya, `Supabase` akan memindahkan kita ke halaman Dashboard. Pada halaman Dashboard ini, kita akan pilih sidebar `Settings`, kemudian akan dibawa pada halaman `Project Settings`, kemudian pilih `Database`, dan kita akan diberikan informasi tentang `Database Settings`.
+
+   Pada tab `Connection String`, kita akan pilih versi `URI` dan `Copy` Connection Stringnya dan paste ke tempat yang aman.
+
+   ![assets/03.png](assets/03.png)
+
+   (Jangan lupa untuk ganti **[YOUR-PASSWORD]** dengan password database yang dibuat di atas yah)
+
+1. Perhatikan juga pada Card `Connection Pooling`, terdapat 1 Connection String lagi yah, ini juga harus kita catat dan `Copy` Connection Stringnya dan paste ke tempat yang aman.
+
+   ![assets/04.png](assets/04.png)
+
+   (Jangan lupa untuk ganti **[YOUR-PASSWORD]** dengan password database yang dibuat di atas yah)
+
+1. **Mengapa ada 2 Connection String?**
+
+   - Connection String pertama (port `5432`), adalah Connection String untuk kita berkoneksi dengan database secara langsung, seperti kita menggunakan database client (semacam DBeaver, psql, adminer, phpmyadmin dsb)
+   - Connection String kedua (port `6543`), adalah Connection String untuk kita gunakan dalam aplikasi yang umumnya menggunakan `Serverless Function`, karena kita akan menembak databasenya terus terusan per request, sehingga kalau kita menggunakan direct connection tidak terlalu baik untuk performa.
+
 Sampai pada titik ini, kita sudah berhasil membuat database yang akan digunakan untuk deployment kita nanti. Perhatikan bahwa pada `Supabase`, database-nya sudah dibuat yah. Sehingga untuk pengguna **sequelize** dan ORM lainnya, **JANGAN CREATE DATABASE-nya** lagi, melainkan langsung `migration` dan `seed` saja nantinya.
 
 Selanjutnya kita akan mencoba bertindak sebagai "non-developer" dengan melakukan migrasi dan seeding data awal pada database.
 
 ## Langkah 3 - Migration & Seeding Database Production
 
-Langkah ini umumnya tidak dilakukan oleh developer, melainkan oleh database administrator apabila di perusahaan besar. (Tapi bisa juga dilakukan oleh developer bila di kantor menganut sistem palugada !)
+**Langkah ini umumnya tidak dilakukan oleh developer pada level production**, melainkan oleh database administrator apabila di perusahaan besar. (Tapi bisa juga dilakukan oleh developer bila di kantor menganut sistem palugada - _apa lu mau gw (gak) ada_ !)
 
 Pada langkah ini kita akan melakukan pembuatan tabel pada Production database dan melakukan penambahan data awal (seeding). Untuk pembelajaran ini seeding dilakukan dengan mengenerate random data untuk dimasukkan ke dalam database yah.
 
 Langkahnya adalah sebagai berikut:
+
+1. Buka terminal pada PC Lokal kita sendiri
+1. Set Environment Variabel untuk database (umumnya bernama `DATABASE_URL`) dengan valuenya adalah `Connection String - Direct Connection (ConnStringDC)` (yang port `5432`) pada komputer lokal kita dengan perintah sebagai berikut:
+
+   - [Windows - CMD] - `setx DATABASE_URL "ConnStringDC"`
+   - [Windows - PowerShell] - `$Env:DATABASE_URL = "ConnStringDC"`
+   - [Linux & MacOS] - `export DATABASE_URL='ConnStringDC'`
+
+   Dimana `ConnStringDC` adalah Connection String pertama yang kita copy pada ;langkah sebelumnya.
+
+   **DISCLAIMER**:
+
+   Setting Environment Variable seperti ini hanya bersifat _ephemeral_, dalam artian ketika terminal ditutup dan dibuka lagi, maka Key dan Valuenya nya akan hilang.
+
+1. Selanjutnya karena pada aplikasi Express ini kita menggunakan sequelize sebagai ORMnya dan sequelize-cli sebagai tools tambahannya, kita bisa menggunakan Database Creation, Migration, dan Seeding via sequelize-cli:
+
+   - https://github.com/sequelize/cli
+
+1. Buka kembali folder `sources/a-start` kemudian lakukan install package node dengan langkah berikut:
+
+   - [npm] `npm install`
+   - [yarn] `yarn add`
+   - [pnpm] `pnpm install`
+
+1. Buka dan modifikasi file `config/config.json` untuk bisa menggunakan environment variable dengan nama `DATABASE_URL` pada production. perubahan kodenya adalah sebagai berikut:
+
+   ```json
+   {
+     "development": {
+       "username": "root",
+       "password": null,
+       "database": "database_development",
+       "host": "127.0.0.1",
+       "dialect": "mysql"
+     },
+     "test": {
+       "username": "root",
+       "password": null,
+       "database": "database_test",
+       "host": "127.0.0.1",
+       "dialect": "mysql"
+     },
+     // Yang kita ganti adalah yang dari sini
+     "production": {
+       "use_env_variable": "DATABASE_URL",
+       "ssl": true,
+       "dialect": "postgres",
+       "protocol": "postgres",
+       "dialectOptions": {
+         "ssl": {
+           "require": true,
+           "rejectUnauthorized": false
+         }
+       }
+     }
+   }
+   ```
+
+1. Jalankan perintah berikut pada terminal:
+
+   ```bash
+   # (npm / yarn)
+   npx sequelize-cli db:migrate --env=production
+   npx sequelize-cli db:seed:all --env=production
+
+   # (pnpm)
+   pnpm sequelize-cli db:migrate --env=production
+   pnpm sequelize-cli db:seed:all --env=production
+   ```
+
+1. Maka setelah langkah ini selesai dan semuanya berjalan baik baik saja, seharusnya pada Supabase, ketika kita melihat pada `Table Editor`, maka kita akan mendapatkan data kita yang sudah siap di level Production !
