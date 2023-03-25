@@ -8,6 +8,8 @@
 - [Let's Demo](#lets-demo)
   - [Langkah 1 - Inisialisasi Project](#langkah-1---inisialisasi-project)
   - [Langkah 2 - Setup Database (Supabase)](#langkah-2---setup-database-supabase)
+  - [Langkah 3 - Migration & Seeding Database Production](#langkah-3---migration--seeding-database-production)
+  - [Langkah 4 - Langkah 4 - Deploy to Vercel (Percobaan Pertama)](#langkah-4---deploy-to-vercel-percobaan-pertama)
 
 ## Persyaratan Dasar
 
@@ -28,6 +30,8 @@ Aplikasi ini menggunakan:
 - `ExpressJS` sebagai Backend Framework
 - `Sequelize` sebagai Object Relational Mapper-nya (ORM)
 - `PostgreSQL` sebagai Database
+
+(Dalam pembelajaran ini asumsinya adalah aplikasi sudah ready dan siap dideploy, sehingga tidak ada contoh untuk develop secara lokal lagi yah.)
 
 Aplikasi ini nanti akan di-deploy pada `Vercel` dan untuk Database akan menggunakan `Supabase`.
 
@@ -246,3 +250,29 @@ Langkahnya adalah sebagai berikut:
    ```
 
 1. Maka setelah langkah ini selesai dan semuanya berjalan baik baik saja, seharusnya pada Supabase, ketika kita melihat pada `Table Editor`, maka kita akan mendapatkan data kita yang sudah siap di level Production !
+
+Selanjutnya kita akan mencoba untuk deploy aplikasi kita ini ke `Vercel`.
+
+## Langkah 4 - Deploy to Vercel (Percobaan Pertama)
+
+Pada langkah ini kita akan mencoba untuk mendeploy aplikasi yang sudah dibuat ke Vercel dan melihat apakah aplikasi bisa berjalan dengan baik atau tidak.
+
+Langkahnya adalah sebagai berikut:
+
+1. Buka web vercel (`https://vercel.com`) dan lakukan login
+1. Pada Dashboard Vercel, pilih `Add New...` -> `Project` dan kita akan diminta untuk meng-import repository Git.
+1. Pilih repo yang sudah dibuat pada saat inisialisasi project, dan tekan tombol `Import`.
+
+   ![assets/05.png](assets/05.png)
+
+1. Kemudian kita akan dipindahkan ke halaman `Dashboard` untuk melakukan konfigurasi. Pada tab `Configure Project`, expand Accordion dengan nama `Environment Variables`, dan masukkan key-nya (`Name`) adalah `DATABASE_URL` dan `Value` nya adalah `Connection String yang Kedua` (port 6543), kemudian tekan tombol `Deploy`.
+
+   ![assets/06.png](assets/06.png)
+
+1. Kemudian kita akan menunggu hingga deploymentnya selesai dan diberikan halaman outputnya oleh Vercel.
+
+   Dan ternyata... Gagal 😭
+
+   Hal ini terjadi karena kita belum membuat aplikasi kita ini menjadi sebuah `Serverless Function` di dalam Vercel.
+
+Pada langkah selanjutnya kita akan memodifikasi kode kita menjadi sebuah Serverless Function agar dapat berjalan di Vercel.
