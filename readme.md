@@ -39,6 +39,11 @@ Aplikasi ini nanti akan di-deploy pada `Vercel` dan untuk Database akan mengguna
 
 Apabila belum memiliki akun `Supabase`, Sangat disarankan untuk `Login with Github` dalam pembelajaran ini agar cepat terkoneksi dengan `Supabase`.
 
+Hasil akhir deployment aplikasi ini bisa dilihat pada:
+
+- https://apps-deploy-with-db-serverless.vercel.app/
+- Apabila tidak bisa dilihat dan terkena 500, ada kemungkinan databasenya sudah sleep (karena Supabase ada idle time to shutdown-nya)
+
 ## Perkenalan
 
 Pada pembelajaran sebelumnya (https://github.com/withered-flowers/education-deploy-apps-serverless), kita sudah belajar bagaimana cara mendeploy aplikasi berbasis Express secara Serverless (Function) dengan menggunakan Vercel.
