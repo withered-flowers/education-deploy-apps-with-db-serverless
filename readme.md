@@ -10,6 +10,7 @@
   - [Langkah 2 - Setup Database (Supabase)](#langkah-2---setup-database-supabase)
   - [Langkah 3 - Migration & Seeding Database Production](#langkah-3---migration--seeding-database-production)
   - [Langkah 4 - Langkah 4 - Deploy to Vercel (Percobaan Pertama)](#langkah-4---deploy-to-vercel-percobaan-pertama)
+  - [Langkah 5 - Modifikasi Kode menjadi Serverless Function](#langkah-5---modifikasi-kode-menjadi-serverless-function)
 
 ## Persyaratan Dasar
 
@@ -276,3 +277,94 @@ Langkahnya adalah sebagai berikut:
    Hal ini terjadi karena kita belum membuat aplikasi kita ini menjadi sebuah `Serverless Function` di dalam Vercel.
 
 Pada langkah selanjutnya kita akan memodifikasi kode kita menjadi sebuah Serverless Function agar dapat berjalan di Vercel.
+
+## Langkah 5 - Modifikasi Kode menjadi Serverless Function
+
+Pada langkah ini kita akan memodifikasi kode Express yang dimiliki menjadi sebuah Serverless Function
+
+Langkahnya adalah sebagai berikut:
+
+1. Buka folder `sources/a-start`
+1. Buat sebuah folder dengan nama `api` (`/sources/a-start/api`)
+1. Pindahkan seluruh folder dan data yang ada pada folder `api` sehingga tersisa `.git`, `.gitignore` dan folder `api` saja.
+
+   Struktur foldernya sekarang adalah:
+
+   ```
+   sources/
+      a-start/
+         .gitignore
+         .git/
+         api/
+            .env.example
+            config/
+            data/
+            migrations/
+            models/
+            api.http
+            app.js
+            package.json
+   ```
+
+1. Tambahkan sebuah file dengan nama `vercel.json` kemudian masukkan konfigurasi berikut:
+
+   ```json
+   {
+     "routes": [
+       {
+         "src": "/(.*)",
+         "dest": "/api"
+       }
+     ]
+   }
+   ```
+
+   File ini untuk bisa menggunakan meng-set `api` yang sudah dibuat ini menjadi endpoint utama tanpa perlu mengaksesnya lewat endpoint `/api`
+
+1. Rename file `app.js` (`sources/a-start/api/app.js`) menjadi `index.js` (`sources/a-start/api/index.js`)
+1. Buka file `index.js` kemudian modifikasi kode `listen` menjadi `module exports`. Adapun kodenya adalah sebagai berikut:
+
+   ```js
+   if (process.env.NODE_ENV === "development") {
+     require("dotenv").config();
+   }
+
+   const cors = require("cors");
+
+   const express = require("express");
+   const app = express();
+
+   // TODO: Comment kode di bawah ini
+   // const port = process.env.PORT || 10000;
+
+   const { User } = require("./models/index.js");
+
+   app.use(cors());
+   app.use(express.urlencoded({ extended: false }));
+
+   app.get("/", async (req, res) => {
+     try {
+       const users = await User.findAll();
+       res.status(200).json({
+         code: 200,
+         message: {
+           secret: process.env.SECRET,
+           data: users,
+         },
+       });
+     } catch (err) {
+       res.status(400).json({ code: 400, message: err });
+     }
+   });
+
+   // TODO: Ganti kode  di bawah ini
+
+   // app.listen(port, () => console.log(`Application is working at port ${port}`));
+   module.exports = app;
+   ```
+
+1. Kemudian kita akan coba untuk commit dan re-deploy aplikasi ini lagi.
+
+   Bagaimanakah caranya?
+
+   Cukup dengan melakukan `git add, git commit dan git push` saja, maka kode akan dideploy ulang lagi oleh Vercel secara otomatis.
